@@ -1,5 +1,5 @@
 {
-	"background": {"scripts": ["bg.js"]},
+	"background": {"scripts": ["bg.js"],"persistent": false},
 	"browser_action": {
 		"default_icon": {
 			 "19": "icons/19.png",
@@ -39,7 +39,7 @@
 	"permissions": [ "activeTab", "tabs", "storage" ],
 	"short_name": "GeeksForGeeks Reader with Sync",
 	"update_url": "https://clients2.google.com/service/update2/crx",
-	"version": "5.1",
+	"version": "5.2",
 	"web_accessible_resources": [ "jquery-1.11.1.js","options.html" ],
 	"icons": {
       "128": "icons/128.png",
