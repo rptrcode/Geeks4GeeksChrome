@@ -197,9 +197,9 @@ function writestorage(data, callback){
 }
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-	if(message.command=="setbgitems2main" && (typeof items_ !== "undefined")){
+	if(message.command=="importbg2main" && (typeof items_ !== "undefined")){
 		var a = JSON.parse(items_.gfg);
-		var b = JSON.parse(message.data);
+		var b = JSON.parse(localStorage.getItem('gfgexport'));
 		b.filter(function(param){
 		if (a.filter(function(p) {return p.url == param.url}).length == 0) {
 			a.push({url: param.url});
@@ -208,8 +208,14 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		writestorage(a, function() {
 			init(); //read and linethrough all overa again
 		});
-	} else if(message.command=="getbgitems2main" && (typeof items_ !== "undefined")){
-			sendResponse(items_);
+	} else if(message.command=="exportbg2main" && (typeof items_ !== "undefined")){
+		//needtofigureout for filewrite TBD
+		if (typeof localStorage['gfgexport'] == 'undefined') {
+        var list = [];
+        localStorage.setItem('gfgexport', JSON.stringify(list));
+    }
+		var a = JSON.parse(items_.gfg);
+		localStorage.setItem('gfgexport', JSON.stringify(a));
 	} else if(message.command=="togglebg2main") {
 			mark();
 	}

@@ -20,11 +20,11 @@
 	"commands": {
 		"import": {
 			"suggested_key": { "default": "Ctrl+Shift+1" },
-			"description": "Import JSON"
+			"description": "Import"
 		},
 		"export": {
 			"suggested_key": { "default": "Ctrl+Shift+2" },
-			"description": "Export JSON"
+			"description": "Export"
 		},
 		"toggle": {
 			"suggested_key": { "default": "Ctrl+Shift+S" },
@@ -32,14 +32,14 @@
 		}
 	},
   "options_page": "options.html",
-	"description": "Customize GeeksForGeeks.org website. Sync your solved problems progress across Home and Office",
+	"description": "Sync your GeeksForGeeks/GeeksQuiz solved problems across Home and Office.",
 	"key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApw+tr6x0d3Dld66RGa8jf9uOCit8uovAaqNkEPtce4MJVyg8jBt0T6TEdNDB/l15ChkbMF0KPOHDx+XI0ot1OB3KO4Jaqfhf1UOVK0cKLiEVfyVJTs2t2uDKWn7PFvUX/PMXpzO2XtV2DyiOL2p3QmZT3DlPI0UtyqUShCGxxSAqEIMA7CnxvqXkCDhlMffZ7vT2+p19N7HHmM6fI45dOn3TOQ313ORLRrEu2ev5Yi6TXmlqD3fdXQszN4qOXuZpbVAHlDUNbtL5SjoZLMY09QVSNoGZHjtEqjk3pF5yhS2wtuMnwnD/zJAX0zi/bJBuRem79fcMfa/PQFLsHCQHlQIDAQAB",
 	"manifest_version": 2,
 	"name": "GeeksForGeeks Reader with Sync",
 	"permissions": [ "activeTab", "tabs", "storage" ],
 	"short_name": "GeeksForGeeks Reader with Sync",
 	"update_url": "https://clients2.google.com/service/update2/crx",
-	"version": "5.2",
+	"version": "5.3",
 	"web_accessible_resources": [ "jquery-1.11.1.js","options.html" ],
 	"icons": {
       "128": "icons/128.png",
