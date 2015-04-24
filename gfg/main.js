@@ -17,7 +17,7 @@ $("body").append(container);
 var docflag = true;
 var doctimeout = setTimeout(init, 3000);
 
-$(document).ready(function() {	
+$(document).ready(function() {
 	if(docflag==true){	
 		clearTimeout(doctimeout);
 		docflag=false;
@@ -44,10 +44,8 @@ function init() {
 	});
 
 	docflag = false;	
-	readstorage(initcallback);
-}
-
-function initcallback(items){
+	
+	readstorage(function(items){
 	if(typeof(items.gfg) == 'undefined') {
 		var list = [{"url":"dummy"}];
 		writestorage(list, function(){
@@ -56,7 +54,28 @@ function initcallback(items){
 	} else {
 		doccallback(items);
 	}
+	});
+	
+	readsettingsstorage(function (items) {
+		if(typeof(items.gfgsettings) == 'undefined') {
+		var list = [{"textdec":"line-through", "opacity":30, "removelinks":false}];
+		writesettingsstorage(list, function(){
+			readsettingsstorage(readsettingscallback);
+		});
+		} else {
+			readsettingscallback(items);
+		}
+	});
 }
+
+function readsettingscallback(items){
+ 	var a = JSON.parse(items.gfgsettings);	
+	a.filter(function(settings) {
+		settings_ = settings;
+	});
+	
+	linethrough();
+}	
 
 function doccallback(items) {
 	var a = JSON.parse(items.gfg);
@@ -69,27 +88,8 @@ function doccallback(items) {
 		toggle(false);
 	}
 	items_ = items;
-	getbgsettings();
 }
 
-function getbgsettings(){
-	 chrome.runtime.sendMessage({
-			command: "getbgsettings"
-	}, function(response) {
-			if(response==null){
-				settings_=[];
-				settings_.textdec = "line-through";
-				settings_.opacity = 30;
-				settings_.removelinks = false;
-				linethrough();
-			} else {
-					response.filter(function(param){
-						settings_ = param;
-						linethrough();
-					});
-			}
-		});
-}
 
 function linethrough() {
 	var container = $('#container');
@@ -116,7 +116,7 @@ function linethrough() {
 			unreadcnt++;
 		}
 	});
-	if((readcnt+unreadcnt)>25){
+	if((readcnt+unreadcnt)>25 && (settings_.removelinks ==false)){
 		$("#container").off("click");
 		container.css("cursor","default");	
 		var perc = Math.floor((readcnt*100)/(readcnt+unreadcnt));
@@ -126,6 +126,10 @@ function linethrough() {
 		} else {
 			container.css("background-color","red");
 		}
+	} else if((readcnt+unreadcnt)>25 && (settings_.removelinks ==true)){
+		$("#container").off("click");
+		container.css("cursor","default");
+		container.text(unreadcnt);
 	}
 }
 
@@ -150,36 +154,30 @@ function toggle(val) {
 	}
 }
 
-
 function add() {
-	readstorage(addcallback);
-}
-//just too many callbacks.. TBD
-function addcallback(items) {
-	var l = document.URL;
-	var a = JSON.parse(items.gfg);
-	if (a.filter(function(p) {return p.url == l}).length == 0) {
-		a.push({url: l});
-	}
-	writestorage(a, function() {
+	readstorage(function(items) {
+		var l = document.URL;
+		var a = JSON.parse(items.gfg);
+		if (a.filter(function(p) {return p.url == l}).length == 0) {
+			a.push({url: l});
+		}
+		writestorage(a);
 	});
 }
 
 function remove(l) {
-	readstorage(removecallback);
-}
-
-function removecallback(items){
-	var l = document.URL;
-	var a = JSON.parse(items.gfg);
-	if (a.filter(function(p) {
+	readstorage(function(items){
+		var l = document.URL;
+		var a = JSON.parse(items.gfg);
+		if (a.filter(function(p) {
 			return p.url == l
-	}).length > 0) {
+		}).length > 0) {
 			var removed = jQuery.grep(a, function(p) {
-					return p.url !== l;
+				return p.url !== l;
 			});
-		writestorage(removed);
-	}
+			writestorage(removed);
+		}
+	});
 }
 
 function readstorage(callback){
@@ -195,6 +193,21 @@ function writestorage(data, callback){
 			callback();
 	});
 }
+
+function readsettingsstorage(callback){
+	chrome.storage.sync.get('gfgsettings', function(items){
+		callback(items);
+	});
+}
+
+function writesettingsstorage(data, callback){
+	var writedata = JSON.stringify(data);
+	chrome.storage.sync.set({'gfgsettings':writedata}, function() {
+		if(callback) 
+			callback();
+	});
+}
+
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 	if(message.command=="importbg2main" && (typeof items_ !== "undefined")){
@@ -216,6 +229,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     }
 		var a = JSON.parse(items_.gfg);
 		localStorage.setItem('gfgexport', JSON.stringify(a));
+		window.open().document.write(JSON.stringify(a));
 	} else if(message.command=="togglebg2main") {
 			mark();
 	}
