@@ -1,8 +1,7 @@
-
-
-//global is bad... remove in nextv TBD
 var items_;
 var settings_;
+var readcount_=0;
+var unreadcount_=0;
 
 var container = $(document.createElement('div')).css({ 
 "position":"fixed", "top":"95%", "right":"0%", "z-index":"9999",  
@@ -43,6 +42,7 @@ function init() {
 		}
 	});
 
+
 	docflag = false;	
 	
 	readstorage(function(items){
@@ -58,10 +58,10 @@ function init() {
 	
 	readsettingsstorage(function (items) {
 		if(typeof(items.gfgsettings) == 'undefined') {
-		var list = [{"textdec":"line-through", "opacity":30, "removelinks":false}];
-		writesettingsstorage(list, function(){
-			readsettingsstorage(readsettingscallback);
-		});
+			var list = [{"textdec":"line-through", "opacity":30, "removelinks":false}];
+			writesettingsstorage(list, function(){
+				readsettingsstorage(readsettingscallback);
+			});
 		} else {
 			readsettingscallback(items);
 		}
@@ -90,43 +90,62 @@ function doccallback(items) {
 	items_ = items;
 }
 
-
+function aggrpage() {
+  return ((readcount_ + unreadcount_)>25);
+}
+	
 function linethrough() {
 	var container = $('#container');
+	var a = JSON.parse(items_.gfg);
+	
+	//Remove link option should work only for aggregate pages.
+	readcount_=0;
+	unreadcount_=0;
+	$("#content .page-content a, #content #post-content a, #content .post-title a").each(function() {
+		if(aggrpage())
+			return false;
+		var link = this.href;
+		if (a.filter(function(p) {
+			return p.url == link
+		}).length > 0) {
+		readcount_++;
+		} else{
+		unreadcount_++;
+		}
+	});
+	
 	var readcnt=0;
 	var unreadcnt=0;
-
-	var a = JSON.parse(items_.gfg);
-
 	$("#content .page-content a, #content #post-content a, #content .post-title a").each(function() {
 		var link = this.href;
 		if (a.filter(function(p) {
 			return p.url == link
 		}).length > 0) {
-			if(settings_.removelinks)
+			readcnt++;
+			if( aggrpage() && settings_.removelinks)
 				$(this).remove();
 			else {
 				$(this).css("opacity", (settings_.opacity)/100);			
 				$(this).css("text-decoration", settings_.textdec);
 			}
-			readcnt++;
 		} else{
+			unreadcnt++;
 			$(this).css("text-decoration", "none");
 			$(this).css("opacity", "1");			
-			unreadcnt++;
 		}
 	});
-	if((readcnt+unreadcnt)>25 && (settings_.removelinks ==false)){
+	
+	if(aggrpage() && (settings_.removelinks ==false)){
 		$("#container").off("click");
 		container.css("cursor","default");	
 		var perc = Math.floor((readcnt*100)/(readcnt+unreadcnt));
 		container.text(readcnt+"("+(readcnt+unreadcnt)+") "+perc+"%");
-		if(perc>25){
+		if(perc>35){
 			container.css("background-color","green");
 		} else {
 			container.css("background-color","red");
 		}
-	} else if((readcnt+unreadcnt)>25 && (settings_.removelinks ==true)){
+	} else if(aggrpage() && (settings_.removelinks ==true)){
 		$("#container").off("click");
 		container.css("cursor","default");
 		container.text(unreadcnt);
