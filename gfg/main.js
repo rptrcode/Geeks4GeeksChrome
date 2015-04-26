@@ -47,6 +47,7 @@ function init() {
 	
 	readstorage(function(items){
 	if(typeof(items.gfg) == 'undefined') {
+		var list = ["ok"];
 		writestorage(list, function(){
 			readstorage(doccallback);
 		});
