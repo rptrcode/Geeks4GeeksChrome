@@ -1,7 +1,5 @@
 var items_;
 var settings_;
-var readcount_=0;
-var unreadcount_=0;
 
 var container = $(document.createElement('div')).css({ 
 "position":"fixed", "top":"95%", "right":"0%", "z-index":"9999",  
@@ -29,21 +27,19 @@ $(window).on('focus', function() { init(); });
 $("#container").click(function() { mark(); });
 
 function init() {
+	docflag = false;	
 	// website customization
 	$('#content').css("width","auto");
 	$('#sidebar').detach();
 	$('.blog-info').detach();
 	$('#menu').detach();
 	$('#navmenu').detach();
-		$("#wrapper b h2 a").each(function() {
-	//annoying top right corner link
+	$("#wrapper b h2 a").each(function() {
+		//annoying top right corner link
 		if((this.href) == "http://geeksquiz.com/"){
 			this.remove();
 		}
 	});
-
-
-	docflag = false;	
 	
 	readstorage(function(items){
 	if(typeof(items.gfg) == 'undefined') {
@@ -88,61 +84,68 @@ function doccallback(items) {
 	items_ = items;
 }
 
-function aggrpage() {
-  return ((readcount_ + unreadcount_)>25);
-}
-	
+var removedlinks_=0;
+
 function linethrough() {
 	var container = $('#container');
 	var a = JSON.parse(items_.gfg);
 	
-	//Remove link option should work only for aggregate pages.
-	readcount_=0;
-	unreadcount_=0;
-	$("#content .page-content a, #content #post-content a, #content .post-title a").each(function() {
-		if(aggrpage())
-			return false;
-		var link = this.href;
-		if (a.filter(function(p) { return p == link }).length > 0) {
-			readcount_++;
-		} else{
-			unreadcount_++;
-		}
-	});
+	var readlinks=0;
+	var unreadlinks=0;
+	var pagecontent = false;
+
+  if($("#content .post").length > 0){
+	  //console.log("post content");
+	  pagecontent = false;
+	} else {
+		//console.log("page content");
+		pagecontent = true;
+	}
 	
-	var readcnt=0;
-	var unreadcnt=0;
-	$("#content .page-content a, #content #post-content a, #content .post-title a").each(function() {
-		var link = this.href;
-		if (a.filter(function(p) { return p == link }).length > 0) {
-			readcnt++;
-			if( aggrpage() && settings_.removelinks)
-				$(this).remove();
-			else {
-				$(this).css("opacity", (settings_.opacity)/100);			
-				$(this).css("text-decoration", settings_.textdec);
+	if(pagecontent) {
+		//Remove link option should work only for aggregate pages and not for individual posts.
+		$("#content .page-content a").each(function() {
+			var link = this.href;
+			if (a.filter(function(p) { return p == link }).length > 0) {
+				if(settings_.removelinks){
+					removedlinks_++;
+					$(this).remove();
+				} else {
+					readlinks++;
+					$(this).css("opacity", (settings_.opacity)/100);			
+					$(this).css("text-decoration", settings_.textdec);
+				}
+			} else{
+				unreadlinks++;
+				$(this).css("text-decoration", "none");
+				$(this).css("opacity", "1");			
 			}
-		} else{
-			unreadcnt++;
-			$(this).css("text-decoration", "none");
-			$(this).css("opacity", "1");			
-		}
-	});
-	
-	if(aggrpage() && (settings_.removelinks ==false)){
+		});
+		
 		$("#container").off("click");
-		container.css("cursor","default");	
-		var perc = Math.floor((readcnt*100)/(readcnt+unreadcnt));
-		container.text(readcnt+"("+(readcnt+unreadcnt)+") "+perc+"%");
-		if(perc>35){
+		container.css("cursor","default");
+		var read = readlinks + removedlinks_;
+		var unread = unreadlinks;
+		var perc = Math.floor((read*100)/(read+unread));
+		container.text(read+"("+(read+unread)+") "+perc+"%");
+		if(perc>35){ //ok pass :D
 			container.css("background-color","green");
 		} else {
 			container.css("background-color","red");
 		}
-	} else if(aggrpage() && (settings_.removelinks ==true)){
-		$("#container").off("click");
-		container.css("cursor","default");
-		container.text(unreadcnt);
+	} else {
+		$("#content #post-content a, #content .post-title a").each(function() {
+			var link = this.href;
+			if (a.filter(function(p) { return p == link }).length > 0) {
+				readlinks++;
+				$(this).css("opacity", (settings_.opacity)/100);			
+				$(this).css("text-decoration", settings_.textdec);
+			} else{
+				unreadlinks++;
+				$(this).css("text-decoration", "none");
+				$(this).css("opacity", "1");			
+			}
+		});
 	}
 }
 
