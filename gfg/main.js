@@ -47,7 +47,6 @@ function init() {
 	
 	readstorage(function(items){
 	if(typeof(items.gfg) == 'undefined') {
-		var list = [{"url":"dummy"}];
 		writestorage(list, function(){
 			readstorage(doccallback);
 		});
@@ -80,9 +79,7 @@ function readsettingscallback(items){
 function doccallback(items) {
 	var a = JSON.parse(items.gfg);
 	var l = document.URL;
-	if (a.filter(function(p) {
-		return p.url == l
-	}).length > 0) {
+	if (a.filter(function(p) {return p == l}).length > 0) {
 		toggle(true);
 	} else {
 		toggle(false);
@@ -105,12 +102,10 @@ function linethrough() {
 		if(aggrpage())
 			return false;
 		var link = this.href;
-		if (a.filter(function(p) {
-			return p.url == link
-		}).length > 0) {
-		readcount_++;
+		if (a.filter(function(p) { return p == link }).length > 0) {
+			readcount_++;
 		} else{
-		unreadcount_++;
+			unreadcount_++;
 		}
 	});
 	
@@ -118,9 +113,7 @@ function linethrough() {
 	var unreadcnt=0;
 	$("#content .page-content a, #content #post-content a, #content .post-title a").each(function() {
 		var link = this.href;
-		if (a.filter(function(p) {
-			return p.url == link
-		}).length > 0) {
+		if (a.filter(function(p) { return p == link }).length > 0) {
 			readcnt++;
 			if( aggrpage() && settings_.removelinks)
 				$(this).remove();
@@ -177,8 +170,8 @@ function add() {
 	readstorage(function(items) {
 		var l = document.URL;
 		var a = JSON.parse(items.gfg);
-		if (a.filter(function(p) {return p.url == l}).length == 0) {
-			a.push({url: l});
+		if (a.filter(function(p) {return p == l}).length == 0) {
+			a.push(l);
 		}
 		writestorage(a);
 	});
@@ -188,11 +181,9 @@ function remove(l) {
 	readstorage(function(items){
 		var l = document.URL;
 		var a = JSON.parse(items.gfg);
-		if (a.filter(function(p) {
-			return p.url == l
-		}).length > 0) {
+		if (a.filter(function(p) { return p == l }).length > 0) {
 			var removed = jQuery.grep(a, function(p) {
-				return p.url !== l;
+				return p !== l;
 			});
 			writestorage(removed);
 		}
@@ -233,8 +224,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		var a = JSON.parse(items_.gfg);
 		var b = JSON.parse(localStorage.getItem('gfgexport'));
 		b.filter(function(param){
-		if (a.filter(function(p) {return p.url == param.url}).length == 0) {
-			a.push({url: param.url});
+		if (a.filter(function(p) {return p == param}).length == 0) {
+			a.push( param);
 		}
 		});
 		writestorage(a, function() {
@@ -250,6 +241,6 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 		localStorage.setItem('gfgexport', JSON.stringify(a));
 		window.open().document.write(JSON.stringify(a));
 	} else if(message.command=="togglebg2main") {
-			mark();
+		mark();
 	}
 });
