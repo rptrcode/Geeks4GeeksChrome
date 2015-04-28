@@ -105,7 +105,7 @@ function linethrough() {
 	if(pagecontent) {
 		//Remove link option should work only for aggregate pages and not for individual posts.
 		$("#content .page-content a").each(function() {
-			var link = this.href;
+			var link = clipdomain(this.href);
 			if (a.filter(function(p) { return p == link }).length > 0) {
 				if(settings_.removelinks){
 					removedlinks_++;
@@ -135,7 +135,7 @@ function linethrough() {
 		}
 	} else {
 		$("#content #post-content a, #content .post-title a").each(function() {
-			var link = this.href;
+			var link = clipdomain(this.href);
 			if (a.filter(function(p) { return p == link }).length > 0) {
 				readlinks++;
 				$(this).css("opacity", (settings_.opacity)/100);			
@@ -170,20 +170,37 @@ function toggle(val) {
 	}
 }
 
+function clipdomain(url) {
+	var str1 = "http://www.geeksforgeeks.org/";
+	var str2 = url;
+	if(str2.indexOf(str1) != -1)
+		str2 = str2.substr(str1.length);
+	else{
+		str1 = "http://geeksquiz.com/";
+		if(str2.indexOf(str1) != -1)
+			str2 = str2.substr(str1.length);
+	}
+  return str2;
+}
+
 function add() {
 	readstorage(function(items) {
-		var l = document.URL;
+		var l = clipdomain(document.URL);
 		var a = JSON.parse(items.gfg);
 		if (a.filter(function(p) {return p == l}).length == 0) {
 			a.push(l);
 		}
-		writestorage(a);
+		writestorage(a, function() {
+		  if(chrome.runtime.lastError) {
+				console.log("error "+chrome.runtime.lastError.message);
+			}
+		});
 	});
 }
 
 function remove(l) {
 	readstorage(function(items){
-		var l = document.URL;
+		var l = clipdomain(document.URL);
 		var a = JSON.parse(items.gfg);
 		if (a.filter(function(p) { return p == l }).length > 0) {
 			var removed = jQuery.grep(a, function(p) {
