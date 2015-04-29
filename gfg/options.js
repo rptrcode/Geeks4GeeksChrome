@@ -1,26 +1,26 @@
 
-function save_options() {
+function saveOptions() {
   var textdecval = document.getElementById('textdec').value;
   var opacityval = document.getElementById('opacity').value;
   var removelinksval = document.getElementById('removelinks').checked;
 	var settings = [{textdec:textdecval, opacity:opacityval, removelinks:removelinksval}];
-	writesettingsstorage(settings);
+	writeSettingsStorage(settings);
 }
 
 function init() {
-	readsettingsstorage(function (items) {
+	readSettingsStorage(function (items) {
 		if(typeof(items.gfgsettings) == 'undefined') {
 		var list = [{"textdec":"line-through", "opacity":30, "removelinks":false}];
-		writesettingsstorage(list, function(){
-			readsettingsstorage(readsettingscallback);
+		writeSettingsStorage(list, function(){
+			readSettingsStorage(readSettingsCallback);
 		});
 		} else {
-			readsettingscallback(items);
+			readSettingsCallback(items);
 		}
 	});
 }
 
- function readsettingscallback(items) {
+ function readSettingsCallback(items) {
  	var a = JSON.parse(items.gfgsettings);	
 	a.filter(function(setting) {
 		document.getElementById('textdec').value = setting.textdec;
@@ -29,13 +29,13 @@ function init() {
 	});
 }
 	
-function readsettingsstorage(callback){
+function readSettingsStorage(callback){
 	chrome.storage.sync.get('gfgsettings', function(items){
 		callback(items);
 	});
 }
 
-function writesettingsstorage(data, callback){
+function writeSettingsStorage(data, callback){
 	var writedata = JSON.stringify(data);
 	chrome.storage.sync.set({'gfgsettings':writedata}, function() {
 		if(callback) 
@@ -44,6 +44,6 @@ function writesettingsstorage(data, callback){
 }
 
 document.addEventListener('DOMContentLoaded', init);
-document.getElementById('removelinks').addEventListener('change',save_options);
-document.getElementById('textdec').addEventListener('change',save_options);
-document.getElementById('opacity').addEventListener('change',save_options);
+document.getElementById('removelinks').addEventListener('change',saveOptions);
+document.getElementById('textdec').addEventListener('change',saveOptions);
+document.getElementById('opacity').addEventListener('change',saveOptions);

@@ -41,30 +41,30 @@ function init() {
 		}
 	});
 	
-	readstorage(function(items){
+	readStorage(function(items){
 	if(typeof(items.gfg) == 'undefined') {
 		var list = ["ok"];
-		writestorage(list, function(){
-			readstorage(doccallback);
+		writeStorage(list, function(){
+			readStorage(docCallback);
 		});
 	} else {
-		doccallback(items);
+		docCallback(items);
 	}
 	});
 	
-	readsettingsstorage(function (items) {
+	readSettingsStorage(function (items) {
 		if(typeof(items.gfgsettings) == 'undefined') {
 			var list = [{"textdec":"line-through", "opacity":30, "removelinks":false}];
-			writesettingsstorage(list, function(){
-				readsettingsstorage(readsettingscallback);
+			writeSettingsStorage(list, function(){
+				readSettingsStorage(readSettingsCallback);
 			});
 		} else {
-			readsettingscallback(items);
+			readSettingsCallback(items);
 		}
 	});
 }
 
-function readsettingscallback(items){
+function readSettingsCallback(items){
  	var a = JSON.parse(items.gfgsettings);	
 	a.filter(function(settings) {
 		settings_ = settings;
@@ -73,9 +73,9 @@ function readsettingscallback(items){
 	linethrough();
 }	
 
-function doccallback(items) {
+function docCallback(items) {
 	var a = JSON.parse(items.gfg);
-	var l = document.URL;
+	var l = clipDomainAndHash(document.URL);
 	if (a.filter(function(p) {return p == l}).length > 0) {
 		toggle(true);
 	} else {
@@ -105,7 +105,7 @@ function linethrough() {
 	if(pagecontent) {
 		//Remove link option should work only for aggregate pages and not for individual posts.
 		$("#content .page-content a").each(function() {
-			var link = clipdomain(this.href);
+			var link = clipDomainAndHash(this.href);
 			if (a.filter(function(p) { return p == link }).length > 0) {
 				if(settings_.removelinks){
 					removedlinks_++;
@@ -135,7 +135,7 @@ function linethrough() {
 		}
 	} else {
 		$("#content #post-content a, #content .post-title a").each(function() {
-			var link = clipdomain(this.href);
+			var link = clipDomainAndHash(this.href);
 			if (a.filter(function(p) { return p == link }).length > 0) {
 				readlinks++;
 				$(this).css("opacity", (settings_.opacity)/100);			
@@ -170,7 +170,21 @@ function toggle(val) {
 	}
 }
 
-function clipdomain(url) {
+function str2hash(str) {
+	var hash=0,chr,len;
+	len = str.length;
+	if(len==0) return 0;
+	var i=0;
+	while(i<len) {
+		chr = str.charCodeAt(i);
+	  hash = ((hash << 5)-hash + chr);
+		hash |= 0;
+	  i++;
+	 }
+	return hash;
+}
+
+function clipDomainAndHash(url) {
 	var str1 = "http://www.geeksforgeeks.org/";
 	var str2 = url;
 	if(str2.indexOf(str1) != -1)
@@ -180,17 +194,17 @@ function clipdomain(url) {
 		if(str2.indexOf(str1) != -1)
 			str2 = str2.substr(str1.length);
 	}
-  return str2;
+  return str2hash(str2);
 }
 
 function add() {
-	readstorage(function(items) {
-		var l = clipdomain(document.URL);
+	readStorage(function(items) {
+		var l = clipDomainAndHash(document.URL);
 		var a = JSON.parse(items.gfg);
 		if (a.filter(function(p) {return p == l}).length == 0) {
 			a.push(l);
 		}
-		writestorage(a, function() {
+		writeStorage(a, function() {
 		  if(chrome.runtime.lastError) {
 				console.log("error "+chrome.runtime.lastError.message);
 			}
@@ -199,25 +213,25 @@ function add() {
 }
 
 function remove(l) {
-	readstorage(function(items){
-		var l = clipdomain(document.URL);
+	readStorage(function(items){
+		var l = clipDomainAndHash(document.URL);
 		var a = JSON.parse(items.gfg);
 		if (a.filter(function(p) { return p == l }).length > 0) {
 			var removed = jQuery.grep(a, function(p) {
 				return p !== l;
 			});
-			writestorage(removed);
+			writeStorage(removed);
 		}
 	});
 }
 
-function readstorage(callback){
+function readStorage(callback){
 	chrome.storage.sync.get('gfg', function(items){
 		callback(items);
 	});
 }
 
-function writestorage(data, callback){
+function writeStorage(data, callback){
 	var writedata = JSON.stringify(data);
 	chrome.storage.sync.set({'gfg':writedata}, function() {
 		if(callback)
@@ -225,13 +239,13 @@ function writestorage(data, callback){
 	});
 }
 
-function readsettingsstorage(callback){
+function readSettingsStorage(callback){
 	chrome.storage.sync.get('gfgsettings', function(items){
 		callback(items);
 	});
 }
 
-function writesettingsstorage(data, callback){
+function writeSettingsStorage(data, callback){
 	var writedata = JSON.stringify(data);
 	chrome.storage.sync.set({'gfgsettings':writedata}, function() {
 		if(callback) 
@@ -239,17 +253,16 @@ function writesettingsstorage(data, callback){
 	});
 }
 
-
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 	if(message.command=="importbg2main" && (typeof items_ !== "undefined")){
 		var a = JSON.parse(items_.gfg);
 		var b = JSON.parse(localStorage.getItem('gfgexport'));
 		b.filter(function(param){
-		if (a.filter(function(p) {return p == param}).length == 0) {
-			a.push( param);
-		}
+			if (a.filter(function(p) {return p == param}).length == 0) {
+				a.push( param);
+			}
 		});
-		writestorage(a, function() {
+		writeStorage(a, function() {
 			init(); //read and linethrough all overa again
 		});
 	} else if(message.command=="exportbg2main" && (typeof items_ !== "undefined")){
